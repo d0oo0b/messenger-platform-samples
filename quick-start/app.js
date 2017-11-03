@@ -15,23 +15,34 @@
  */
 
 'use strict';
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+// const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const PAGE_ACCESS_TOKEN = 'EAAB5nDsiJZBEBALX6QpYkZAzUxIumlxJZCw3WHsmBL9E3P5mBExs2jJ82usRfC7c8pB7LRAW6DSv7VDLQ3u1ZA069rkprlZASlld5imP2ZCLSVPDH7liuPyByrz8bRZALBlWIY27zfZA1sOiUEb5hvoda7hFhHbuTAH9OttHZBPKS5wZDZD';
 // Imports dependencies and set up http server
 const 
   request = require('request'),
   express = require('express'),
   body_parser = require('body-parser'),
   app = express().use(body_parser.json()); // creates express http server
+const fs = require('fs');
+const https = require('https');
+
+var privateKey  = fs.readFileSync('/etc/letsencrypt/live/www.lumobid.com/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('/etc/letsencrypt/live/www.lumobid.com/fullchain.pem', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
 
 // Sets server port and logs message on success
-app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
-
+// app.listen(process.env.PORT || 1337, '0.0.0.0', () => console.log('webhook is listening on: ' + process.env.PORT));
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(8443, '0.0.0.0', function() {
+    console.log('HTTPS Server is running');
+});
 // Accepts POST requests at /webhook endpoint
 app.post('/webhook', (req, res) => {  
 
+  console.log('Webhook!');
   // Parse the request body from the POST
   let body = req.body;
-
+  console.log(body.object);
   // Check the webhook event is from a Page subscription
   if (body.object === 'page') {
 
@@ -70,7 +81,7 @@ app.post('/webhook', (req, res) => {
 app.get('/webhook', (req, res) => {
   
   /** UPDATE YOUR VERIFY TOKEN **/
-  const VERIFY_TOKEN = "<YOUR VERIFY TOKEN>";
+  const VERIFY_TOKEN = "malimalihong";
   
   // Parse params from the webhook verification request
   let mode = req.query['hub.mode'];
@@ -91,6 +102,9 @@ app.get('/webhook', (req, res) => {
       // Responds with '403 Forbidden' if verify tokens do not match
       res.sendStatus(403);      
     }
+  } else {
+    console.log('Error: mode or token undefined.');
+    res.sendStatus(402);
   }
 });
 
